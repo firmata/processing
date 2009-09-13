@@ -13,20 +13,20 @@
 		0A8B99880B8F55EC003CD01B /* resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = resources; sourceTree = "<group>"; };
 		0A8B99B20B8F56A4003CD01B /* build.xml */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = build.xml; sourceTree = "<group>"; };
 		0A8B99E90B8F5855003CD01B /* jars */ = {isa = PBXFileReference; lastKnownFileType = folder; path = jars; sourceTree = "<group>"; };
-		0A8B99EC0B8F585C003CD01B /* dist */ = {isa = PBXFileReference; lastKnownFileType = folder; path = dist; sourceTree = "<group>"; };
+		817E2C8C105D52CF00425757 /* arduino */ = {isa = PBXFileReference; lastKnownFileType = folder; path = arduino; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		00E6828FFEC88D1A11DB9C8B = {
 			isa = PBXGroup;
 			children = (
+				817E2C8C105D52CF00425757 /* arduino */,
 				0A8B99B20B8F56A4003CD01B /* build.xml */,
 				0A8B99840B8F55E8003CD01B /* src */,
 				0A8B99880B8F55EC003CD01B /* resources */,
 				0A8B99810B8F55E2003CD01B /* lib */,
 				0A8B997E0B8F55D6003CD01B /* bin */,
 				0A8B99E90B8F5855003CD01B /* jars */,
-				0A8B99EC0B8F585C003CD01B /* dist */,
 			);
 			sourceTree = "<group>";
 		};
