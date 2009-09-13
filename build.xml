@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Arduino" default="install" basedir=".">
+	<property name="src" location="src"/> <!-- java source folder -->
+	<property name="bin" location="bin"/> <!-- intermediate build products -->
+	<property name="examples" location="examples"/> <!-- example files -->
+	<property name="jars" location="jars"/> <!-- jar files -->
+	<property name="lib" location="lib"/> <!-- local libraries linked against -->
+	<property name="dist" location="arduino"/> <!-- build product location -->
+	<property name="resources" location="resources"/> <!-- location of general java resources -->
+	<property name="resources_macosx" location="resources_macosx"/> <!-- location of Mac OS X specific resources -->
+	<property name="compile.debug" value="true"/>
+
+	<!-- lib directory should contain any pre-built jar files needed to build the project -->
+	<fileset id="lib.jars" dir="${lib}">
+		<include name="**/*.jar"/>
+	</fileset>
+
+	<path id="lib.path">
+		<fileset refid="lib.jars"/>
+	</path>
+
+	<!-- Initialization target, for any prelimary setup needed to build -->
+	<target name="init" description="Preparation">
+		<mkdir dir="${src}"/>
+		<mkdir dir="${lib}"/>
+	</target>
+
+	<target name="compile" depends="init" description="Compile code">
+		<mkdir dir="${bin}"/>
+		<javac deprecation="on" srcdir="${src}" destdir="${bin}"
+			   source="1.3" target="1.2"
+			   includeAntRuntime="no"
+			   classpathref="lib.path" debug="${compile.debug}">
+		</javac>
+	</target>
+
+	<target name="jar" depends="compile" description="Build jar">
+		<mkdir dir="${jars}"/>
+		<jar jarfile="${jars}/${ant.project.name}.jar" basedir="${bin}" manifest="${resources}/Manifest">
+			<!-- Inject resources -->
+			<fileset dir="${resources}/"
+				excludes="${resources}/Manifest"
+			/>
+			<!-- Merge library jars into final jar file -->
+			<!--zipgroupfileset refid="lib.jars"/-->
+		</jar>
+	</target>
+	
+    <target name="install" depends="jar" description="Put all the pieces together in the dist directory">
+		<mkdir dir="${dist}"/>
+		<mkdir dir="${dist}/library"/>
+		<mkdir dir="${dist}/examples"/>
+		<mkdir dir="${dist}/src"/>
+		<!-- Copy jars -->
+		<copy toDir="${dist}/library">
+			<fileset dir="${jars}">
+				<include name="*.jar"/>
+			</fileset>			
+		</copy>
+		<!-- Copy examples -->
+		<copy toDir="${dist}/examples">
+			<fileset dir="${examples}"/>
+		</copy>
+		<!-- Copy source code -->
+		<copy toDir="${dist}/src">
+			<fileset dir="${src}"/>
+		</copy>
+    </target>
+
+
+    <target name="run" depends="install" description="Run the tool">
+		<java classname="${ant.project.name}" classpath="${bin}" fork="true">
+		</java>
+	</target>
+	
+    <target name="clean" description="Remove build and dist directories">
+        <delete dir="${bin}"/>
+        <delete dir="${jars}"/>
+        <delete dir="${dist}"/>
+    </target>
+</project>
