@@ -6,7 +6,7 @@ Arduino arduino;
 
 void setup() {
   size(512, 200);
-  arduino = new Arduino(this, Arduino.list()[0], 115200);
+  arduino = new Arduino(this, Arduino.list()[0], 57600);
 }
 
 void draw() {

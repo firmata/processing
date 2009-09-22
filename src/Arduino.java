@@ -25,8 +25,8 @@
  
 package cc.arduino;
 
-import processing.core.*;
-import processing.serial.*;
+import processing.core.PApplet;
+import processing.serial.Serial;
 
 /**
  * Together with the Firmata 2 firmware (an Arduino sketch uploaded to the
@@ -43,6 +43,26 @@ public class Arduino {
    * Constant to set a pin to output mode (in a call to pinMode()).
    */
   public static final int OUTPUT = 1;
+  /**
+   * Constant to set a pin to analog mode (in a call to pinMode()).
+   */
+  public static final int ANALOG = 2;
+  /**
+   * Constant to set a pin to PWM mode (in a call to pinMode()).
+   */
+  public static final int PWM = 3;
+  /**
+   * Constant to set a pin to servo mode (in a call to pinMode()).
+   */
+  public static final int SERVO = 4;
+  /**
+   * Constant to set a pin to shiftIn/shiftOut mode (in a call to pinMode()).
+   */
+  public static final int SHIFT = 5;
+  /**
+   * Constant to set a pin to I2C mode (in a call to pinMode()).
+   */
+  public static final int I2C = 6;
 
   /**
    * Constant to write a high value (+5 volts) to a pin (in a call to
@@ -149,7 +169,7 @@ public class Arduino {
     this.serial = new Serial(serialProxy, iname, irate);
 
     try {
-      Thread.sleep(2000);
+      Thread.sleep(3000);
     } catch (InterruptedException e) {}
 		
     for (int i = 0; i < 6; i++) {
@@ -227,6 +247,7 @@ public class Arduino {
    * (always on)
    */
   public void analogWrite(int pin, int value) {
+    pinMode(pin, PWM);
     serial.write(ANALOG_MESSAGE | (pin & 0x0F));
     serial.write(value & 0x7F);
     serial.write(value >> 7);
