@@ -65,6 +65,8 @@
 		<copy toDir="${dist}/src">
 			<fileset dir="${src}"/>
 		</copy>
+      <!-- Copy library.properties -->
+      <copy toDir="${dist}" file="library.properties" />
     </target>
 
 
