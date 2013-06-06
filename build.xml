@@ -10,10 +10,8 @@
 	<property name="resources_macosx" location="resources_macosx"/> <!-- location of Mac OS X specific resources -->
 	<property name="compile.debug" value="true"/>
 
-	<!-- lib directory should contain any pre-built jar files needed to build the project -->
-	<fileset id="lib.jars" dir="${lib}">
-		<include name="**/*.jar"/>
-	</fileset>
+	<fileset id="lib.jars" dir="/Applications/Processing.app/Contents/Resources/Java/"
+	         includes="core/library/core.jar modes/java/libraries/serial/library/serial.jar" />
 
 	<path id="lib.path">
 		<fileset refid="lib.jars"/>
