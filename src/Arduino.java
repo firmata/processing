@@ -28,6 +28,8 @@ package cc.arduino;
 import processing.core.PApplet;
 import processing.serial.Serial;
 
+import org.firmata.Firmata;
+
 /**
  * Together with the Firmata 2 firmware (an Arduino sketch uploaded to the
  * Arduino board), this class allows you to control the Arduino board from
@@ -75,35 +77,10 @@ public class Arduino {
    */
   public static final int HIGH = 1;
   
-  private final int MAX_DATA_BYTES = 32;
-  
-  private final int DIGITAL_MESSAGE        = 0x90; // send data for a digital port
-  private final int ANALOG_MESSAGE         = 0xE0; // send data for an analog pin (or PWM)
-  private final int REPORT_ANALOG          = 0xC0; // enable analog input by pin #
-  private final int REPORT_DIGITAL         = 0xD0; // enable digital input by port
-  private final int SET_PIN_MODE           = 0xF4; // set a pin to INPUT/OUTPUT/PWM/etc
-  private final int REPORT_VERSION         = 0xF9; // report firmware version
-  private final int SYSTEM_RESET           = 0xFF; // reset from MIDI
-  private final int START_SYSEX            = 0xF0; // start a MIDI SysEx message
-  private final int END_SYSEX              = 0xF7; // end a MIDI SysEx message
-
   PApplet parent;
   Serial serial;
   SerialProxy serialProxy;
-  
-  int waitForData = 0;
-  int executeMultiByteCommand = 0;
-  int multiByteChannel = 0;
-  int[] storedInputData = new int[MAX_DATA_BYTES];
-  boolean parsingSysex;
-  int sysexBytesRead;
-
-  int[] digitalOutputData = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-  int[] digitalInputData  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-  int[] analogInputData   = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-  int majorVersion = 0;
-  int minorVersion = 0;
+  Firmata firmata;
   
   // We need a class descended from PApplet so that we can override the
   // serialEvent() method to capture serial data.  We can't use the Arduino
@@ -117,8 +94,8 @@ public class Arduino {
 
     public void serialEvent(Serial which) {
       // Notify the Arduino class that there's serial data for it to process.
-      while (available() > 0)
-        processInput();
+//      while (available() > 0)
+//        processInput();
     }
   }
   
@@ -163,19 +140,12 @@ public class Arduino {
     this.parent = parent;
     this.serialProxy = new SerialProxy();
     this.serial = new Serial(serialProxy, iname, irate);
-
+    
     try {
-      Thread.sleep(3000);
-    } catch (InterruptedException e) {}
-		
-    for (int i = 0; i < 6; i++) {
-      serial.write(REPORT_ANALOG | i);
-      serial.write(1);
-    }
-
-    for (int i = 0; i < 2; i++) {
-      serial.write(REPORT_DIGITAL | i);
-      serial.write(1);
+      this.firmata = new Firmata(serial.input, serial.output);
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new RuntimeException("Error inside Arduino.Arduino()");
     }
   }
   
@@ -186,7 +156,7 @@ public class Arduino {
    * since pins 0 and 1 are used for serial communication)
    */
   public int digitalRead(int pin) {
-    return (digitalInputData[pin >> 3] >> (pin & 0x07)) & 0x01;
+    return firmata.digitalRead(pin);
   }
 
   /**
@@ -196,7 +166,7 @@ public class Arduino {
    * @param pin the analog pin whose value should be returned (from 0 to 5)
    */
   public int analogRead(int pin) {
-    return analogInputData[pin];
+    return firmata.analogRead(pin);
   }
 
   /**
@@ -206,9 +176,12 @@ public class Arduino {
    * @param mode either Arduino.INPUT or Arduino.OUTPUT
    */
   public void pinMode(int pin, int mode) {
-    serial.write(SET_PIN_MODE);
-    serial.write(pin);
-    serial.write(mode);
+    try {
+      firmata.pinMode(pin, mode);
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new RuntimeException("Error inside Arduino.pinMode()");
+    }
   }
 
   /**
@@ -220,18 +193,14 @@ public class Arduino {
    * (5 volts)
    */
   public void digitalWrite(int pin, int value) {
-    int portNumber = (pin >> 3) & 0x0F;
-  
-    if (value == 0)
-      digitalOutputData[portNumber] &= ~(1 << (pin & 0x07));
-    else
-      digitalOutputData[portNumber] |= (1 << (pin & 0x07));
-
-    serial.write(DIGITAL_MESSAGE | portNumber);
-    serial.write(digitalOutputData[portNumber] & 0x7F);
-    serial.write(digitalOutputData[portNumber] >> 7);
+    try {
+      firmata.digitalWrite(pin, value);
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new RuntimeException("Error inside Arduino.digitalWrite()");
+    }
   }
-  
+
   /**
    * Write an analog value (PWM-wave) to a digital pin.
    *
@@ -241,78 +210,11 @@ public class Arduino {
    * (always on)
    */
   public void analogWrite(int pin, int value) {
-    pinMode(pin, PWM);
-    serial.write(ANALOG_MESSAGE | (pin & 0x0F));
-    serial.write(value & 0x7F);
-    serial.write(value >> 7);
-  }
-
-  private void setDigitalInputs(int portNumber, int portData) {
-    //System.out.println("digital port " + portNumber + " is " + portData);
-    digitalInputData[portNumber] = portData;
-  }
-
-  private void setAnalogInput(int pin, int value) {
-    //System.out.println("analog pin " + pin + " is " + value);
-    analogInputData[pin] = value;
-  }
-
-  private void setVersion(int majorVersion, int minorVersion) {
-    //System.out.println("version is " + majorVersion + "." + minorVersion);
-    this.majorVersion = majorVersion;
-    this.minorVersion = minorVersion;
-  }
-
-  private int available() {
-    return serial.available();
-  }
-
-  private void processInput() {
-    int inputData = serial.read();
-	  int command;
-    
-    if (parsingSysex) {
-      if (inputData == END_SYSEX) {
-        parsingSysex = false;
-        //processSysexMessage();
-      } else {
-        storedInputData[sysexBytesRead] = inputData;
-        sysexBytesRead++;
-      }
-    } else if (waitForData > 0 && inputData < 128) {
-      waitForData--;
-      storedInputData[waitForData] = inputData;
-      
-      if (executeMultiByteCommand != 0 && waitForData == 0) {
-        //we got everything
-        switch(executeMultiByteCommand) {
-        case DIGITAL_MESSAGE:
-          setDigitalInputs(multiByteChannel, (storedInputData[0] << 7) + storedInputData[1]);
-          break;
-        case ANALOG_MESSAGE:
-          setAnalogInput(multiByteChannel, (storedInputData[0] << 7) + storedInputData[1]);
-          break;
-        case REPORT_VERSION:
-          setVersion(storedInputData[1], storedInputData[0]);
-          break;
-        }
-      }
-    } else {
-      if(inputData < 0xF0) {
-        command = inputData & 0xF0;
-        multiByteChannel = inputData & 0x0F;
-      } else {
-        command = inputData;
-        // commands in the 0xF* range don't use channel data
-      }
-      switch (command) {
-      case DIGITAL_MESSAGE:
-      case ANALOG_MESSAGE:
-      case REPORT_VERSION:
-        waitForData = 2;
-        executeMultiByteCommand = command;
-        break;      
-      }
+    try {
+      firmata.analogWrite(pin, value);
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new RuntimeException("Error inside Arduino.analogWrite()");
     }
   }
 }
