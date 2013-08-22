@@ -93,9 +93,16 @@ public class Arduino {
     }
 
     public void serialEvent(Serial which) {
-      // Notify the Arduino class that there's serial data for it to process.
-//      while (available() > 0)
-//        processInput();
+      while (firmata == null); // wait for firmata to be instantiated
+      
+      try {
+        // Notify the Arduino class that there's serial data for it to process.
+        while (which.available() > 0)
+          firmata.processInput();
+      } catch (Exception e) {
+        e.printStackTrace();
+        throw new RuntimeException("Error inside Arduino.serialEvent()");
+      }
     }
   }
   

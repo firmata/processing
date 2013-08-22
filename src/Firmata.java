@@ -78,7 +78,7 @@ public class Firmata {
    */
   public static final int HIGH = 1;
   
-  private final int MAX_DATA_BYTES = 32;
+  private final int MAX_DATA_BYTES = 4096;
   
   private final int DIGITAL_MESSAGE        = 0x90; // send data for a digital port
   private final int ANALOG_MESSAGE         = 0xE0; // send data for an analog pin (or PWM)
@@ -90,6 +90,26 @@ public class Firmata {
   private final int START_SYSEX            = 0xF0; // start a MIDI SysEx message
   private final int END_SYSEX              = 0xF7; // end a MIDI SysEx message
   
+  // extended command set using sysex (0-127/0x00-0x7F)
+  /* 0x00-0x0F reserved for user-defined commands */  
+  private final int SERVO_CONFIG           = 0x70; // set max angle, minPulse, maxPulse, freq
+  private final int STRING_DATA            = 0x71; // a string message with 14-bits per char
+  private final int SHIFT_DATA             = 0x75; // a bitstream to/from a shift register
+  private final int I2C_REQUEST            = 0x76; // send an I2C read/write request
+  private final int I2C_REPLY              = 0x77; // a reply to an I2C read request
+  private final int I2C_CONFIG             = 0x78; // config I2C settings such as delay times and power pins
+  private final int EXTENDED_ANALOG        = 0x6F; // analog write (PWM, Servo, etc) to any pin
+  private final int PIN_STATE_QUERY        = 0x6D; // ask for a pin's current mode and value
+  private final int PIN_STATE_RESPONSE     = 0x6E; // reply with pin's current mode and value
+  private final int CAPABILITY_QUERY       = 0x6B; // ask for supported modes and resolution of all pins
+  private final int CAPABILITY_RESPONSE    = 0x6C; // reply with supported modes and resolution
+  private final int ANALOG_MAPPING_QUERY   = 0x69; // ask for mapping of analog to pin numbers
+  private final int ANALOG_MAPPING_RESPONSE= 0x6A; // reply with mapping info
+  private final int REPORT_FIRMWARE        = 0x79; // report name and version of the firmware
+  private final int SAMPLING_INTERVAL      = 0x7A; // set the poll rate of the main loop
+  private final int SYSEX_NON_REALTIME     = 0x7E; // MIDI Reserved for non-realtime messages
+  private final int SYSEX_REALTIME         = 0x7F; // MIDI Reserved for realtime messages
+
   InputStream in;
   OutputStream out;
 
@@ -103,6 +123,12 @@ public class Firmata {
   int[] digitalOutputData = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   int[] digitalInputData  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   int[] analogInputData   = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+  
+  private final int MAX_PINS = 128;
+  
+  int[] pinModes = new int[MAX_PINS];
+  int[] analogChannel = new int[MAX_PINS];
+  int[] pinMode = new int[MAX_PINS];
 
   int majorVersion = 0;
   int minorVersion = 0;
@@ -120,29 +146,20 @@ public class Firmata {
     try {
       Thread.sleep(3000); // let bootloader timeout
     } catch (InterruptedException e) {}
-		
-    for (int i = 0; i < 6; i++) {
-      out.write(REPORT_ANALOG | i);
-      out.write(1);
-    }
-
-    for (int i = 0; i < 2; i++) {
+    
+    // enable all ports; firmware should ignore non-existent ones
+    for (int i = 0; i < 16; i++) {
       out.write(REPORT_DIGITAL | i);
       out.write(1);
     }
     
-    new Thread() {
-      public void run() {
-	try {
-	  for (;;) if (available() > 0) processInput();
-	} catch (Exception e) {
-	  // need to do something better here, i.e. provide a way for
-	  // the user to find out that the exception occurred.
-	  System.err.println("Error in Firmata.");
-	  e.printStackTrace();
-	}
-      }
-    }.start();
+    //queryCapabilities();
+    queryAnalogMapping();
+		
+//    for (int i = 0; i < 16; i++) {
+//      out.write(REPORT_ANALOG | i);
+//      out.write(1);
+//    }
   }
   
   /**
@@ -228,19 +245,77 @@ public class Firmata {
     this.majorVersion = majorVersion;
     this.minorVersion = minorVersion;
   }
+  
+  private void queryCapabilities() throws IOException {
+    out.write(START_SYSEX);
+    out.write(CAPABILITY_QUERY);
+    out.write(END_SYSEX);
+  }
+  
+  private void queryAnalogMapping() throws IOException {
+    out.write(START_SYSEX);
+    out.write(ANALOG_MAPPING_QUERY);
+    out.write(END_SYSEX);
+  }
 
   private int available() throws IOException {
     return in.available();
   }
+  
+  private void processSysexMessage() throws IOException {
+//    System.out.print("[ ");
+//    for (int i = 0; i < storedInputData.length; i++) System.out.print(storedInputData[i] + " ");
+//    System.out.println("]");
+    switch(storedInputData[0]) { //first byte in buffer is command
+//      case CAPABILITY_RESPONSE:
+//        for (int pin = 0; pin < pinModes.length; pin++) {
+//          pinModes[pin] = 0;
+//        }
+//        for (int i = 1, pin = 0; pin < pinModes.length; pin++) {
+//          for (;;) {
+//            int val = storedInputData[i++];
+//            if (val == 127) break;
+//            pinModes[pin] |= (1 << val);
+//            i++; // skip mode resolution for now
+//          }
+//          if (i == sysexBytesRead) break;
+//        }
+//        for (int port = 0; port < pinModes.length; port++) {
+//          boolean used = false;
+//          for (int i = 0; i < 8; i++) {
+//            if (pinModes[port * 8 + pin] & (1 << INPUT) != 0) used = true;
+//          }
+//          if (used) {
+//            out.write(REPORT_DIGITAL | port);
+//            out.write(1);
+//          }
+//        }
+//        break;
+      case ANALOG_MAPPING_RESPONSE:
+        for (int pin = 0; pin < analogChannel.length; pin++)
+          analogChannel[pin] = 127;
+        for (int i = 1; i < sysexBytesRead; i++)
+          analogChannel[i - 1] = storedInputData[i];
+        for (int pin = 0; pin < analogChannel.length; pin++) {
+          if (analogChannel[pin] != 127) {
+            out.write(REPORT_ANALOG | analogChannel[pin]);
+            out.write(1);
+          }
+        }
+        break;
+    }
+  }
 
-  private void processInput() throws IOException {
+  public void processInput() throws IOException {
     int inputData = in.read();
     int command;
-	  
+    
+//    System.out.print(inputData + " ");
+    
     if (parsingSysex) {
       if (inputData == END_SYSEX) {
         parsingSysex = false;
-        //processSysexMessage();
+        processSysexMessage();
       } else {
         storedInputData[sysexBytesRead] = inputData;
         sysexBytesRead++;
@@ -278,6 +353,10 @@ public class Firmata {
         waitForData = 2;
         executeMultiByteCommand = command;
         break;      
+      case START_SYSEX:
+        parsingSysex = true;
+        sysexBytesRead = 0;
+        break;
       }
     }
   }
