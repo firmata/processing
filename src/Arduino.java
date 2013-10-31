@@ -98,11 +98,17 @@ public class Arduino {
       try {
         // Notify the Arduino class that there's serial data for it to process.
         while (which.available() > 0)
-          firmata.processInput();
+          firmata.processInput(which.read());
       } catch (Exception e) {
         e.printStackTrace();
         throw new RuntimeException("Error inside Arduino.serialEvent()");
       }
+    }
+  }
+  
+  public class FirmataWriter implements Firmata.Writer {
+    public void write(int val) {
+      serial.write(val);
     }
   }
   
@@ -149,7 +155,7 @@ public class Arduino {
     this.serial = new Serial(serialProxy, iname, irate);
     
     try {
-      this.firmata = new Firmata(serial.input, serial.output);
+      this.firmata = new Firmata(new FirmataWriter());
     } catch (Exception e) {
       e.printStackTrace();
       throw new RuntimeException("Error inside Arduino.Arduino()");

@@ -10,7 +10,7 @@
 	<property name="resources_macosx" location="resources_macosx"/> <!-- location of Mac OS X specific resources -->
 	<property name="compile.debug" value="true"/>
 
-	<fileset id="lib.jars" dir="/Applications/Processing.app/Contents/Resources/Java/"
+	<fileset id="lib.jars" dir="/Applications/Processing.app/Contents/Java/"
 	         includes="core/library/core.jar modes/java/libraries/serial/library/serial.jar" />
 
 	<path id="lib.path">

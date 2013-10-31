@@ -25,12 +25,6 @@
 
 package org.firmata; // hope this is okay!
  
-import java.io.FileDescriptor;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.TooManyListenersException;
-
 /**
  * Together with the Firmata 2 firmware (an Arduino sketch uploaded to the
  * Arduino board), this class allows you to control the Arduino board from
@@ -110,9 +104,6 @@ public class Firmata {
   private final int SYSEX_NON_REALTIME     = 0x7E; // MIDI Reserved for non-realtime messages
   private final int SYSEX_REALTIME         = 0x7F; // MIDI Reserved for realtime messages
 
-  InputStream in;
-  OutputStream out;
-
   int waitForData = 0;
   int executeMultiByteCommand = 0;
   int multiByteChannel = 0;
@@ -133,15 +124,20 @@ public class Firmata {
   int majorVersion = 0;
   int minorVersion = 0;
   
+  public interface Writer {
+    public void write(int val);
+  }
+  
+  Writer out;
+  
   /**
    * Create a proxy to an Arduino board running the Firmata 2 firmware.
    *
    * @param in an InputStream associated with the Arduino serial port
    * @param out an OutputStream associated with the Arduino serial port
    */
-  public Firmata(InputStream in, OutputStream out) throws IOException {
-    this.in = in;
-    this.out = out;
+  public Firmata(Writer writer) {
+    this.out = writer;
     
     try {
       Thread.sleep(3000); // let bootloader timeout
@@ -188,7 +184,7 @@ public class Firmata {
    * @param pin the pin whose mode to set (from 2 to 13)
    * @param mode either Arduino.INPUT or Arduino.OUTPUT
    */
-  public void pinMode(int pin, int mode) throws IOException {
+  public void pinMode(int pin, int mode) {
     out.write(SET_PIN_MODE);
     out.write(pin);
     out.write(mode);
@@ -202,7 +198,7 @@ public class Firmata {
    * @param value the value to write: Arduino.LOW (0 volts) or Arduino.HIGH
    * (5 volts)
    */
-  public void digitalWrite(int pin, int value) throws IOException {
+  public void digitalWrite(int pin, int value) {
     int portNumber = (pin >> 3) & 0x0F;
   
     if (value == 0)
@@ -223,7 +219,7 @@ public class Firmata {
    * @param the value: 0 being the lowest (always off), and 255 the highest
    * (always on)
    */
-  public void analogWrite(int pin, int value) throws IOException {
+  public void analogWrite(int pin, int value) {
     pinMode(pin, PWM);
     out.write(ANALOG_MESSAGE | (pin & 0x0F));
     out.write(value & 0x7F);
@@ -246,23 +242,19 @@ public class Firmata {
     this.minorVersion = minorVersion;
   }
   
-  private void queryCapabilities() throws IOException {
+  private void queryCapabilities() {
     out.write(START_SYSEX);
     out.write(CAPABILITY_QUERY);
     out.write(END_SYSEX);
   }
   
-  private void queryAnalogMapping() throws IOException {
+  private void queryAnalogMapping() {
     out.write(START_SYSEX);
     out.write(ANALOG_MAPPING_QUERY);
     out.write(END_SYSEX);
   }
 
-  private int available() throws IOException {
-    return in.available();
-  }
-  
-  private void processSysexMessage() throws IOException {
+  private void processSysexMessage() {
 //    System.out.print("[ ");
 //    for (int i = 0; i < storedInputData.length; i++) System.out.print(storedInputData[i] + " ");
 //    System.out.println("]");
@@ -306,8 +298,7 @@ public class Firmata {
     }
   }
 
-  public void processInput() throws IOException {
-    int inputData = in.read();
+  public void processInput(int inputData) {
     int command;
     
 //    System.out.print(inputData + " ");
