@@ -93,8 +93,6 @@ public class Arduino {
     }
 
     public void serialEvent(Serial which) {
-      while (firmata == null); // wait for firmata to be instantiated
-      
       try {
         // Notify the Arduino class that there's serial data for it to process.
         while (which.available() > 0)
@@ -109,6 +107,7 @@ public class Arduino {
   public class FirmataWriter implements Firmata.Writer {
     public void write(int val) {
       serial.write(val);
+//      System.out.print("<" + val + " ");
     }
   }
   
@@ -151,15 +150,17 @@ public class Arduino {
    */
   public Arduino(PApplet parent, String iname, int irate) {
     this.parent = parent;
+    this.firmata = new Firmata(new FirmataWriter());
     this.serialProxy = new SerialProxy();
     this.serial = new Serial(serialProxy, iname, irate);
     
+    parent.registerMethod("dispose", this);
+
     try {
-      this.firmata = new Firmata(new FirmataWriter());
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new RuntimeException("Error inside Arduino.Arduino()");
-    }
+      Thread.sleep(3000); // let bootloader timeout
+    } catch (InterruptedException e) {}
+    
+    firmata.init();
   }
   
   /**

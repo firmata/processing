@@ -138,11 +138,9 @@ public class Firmata {
    */
   public Firmata(Writer writer) {
     this.out = writer;
-    
-    try {
-      Thread.sleep(3000); // let bootloader timeout
-    } catch (InterruptedException e) {}
-    
+  }
+  
+  public void init() {
     // enable all ports; firmware should ignore non-existent ones
     for (int i = 0; i < 16; i++) {
       out.write(REPORT_DIGITAL | i);
@@ -313,7 +311,7 @@ public class Firmata {
   public void processInput(int inputData) {
     int command;
     
-//    System.out.print(inputData + " ");
+//    System.out.print(">" + inputData + " ");
     
     if (parsingSysex) {
       if (inputData == END_SYSEX) {
