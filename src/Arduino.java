@@ -230,4 +230,19 @@ public class Arduino {
       throw new RuntimeException("Error inside Arduino.analogWrite()");
     }
   }
+  
+  /**
+   * Write a value to a servo pin.
+   *
+   * @param pin the pin the servo is attached to
+   * @param the value: 0 being the lowest angle, and 180 the highest angle
+   */
+  public void servoWrite(int pin, int value) {
+    try {
+      firmata.servoWrite(pin, value);
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new RuntimeException("Error inside Arduino.servoWrite()");
+    }
+  }
 }

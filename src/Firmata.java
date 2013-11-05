@@ -226,6 +226,18 @@ public class Firmata {
     out.write(value >> 7);
   }
 
+  /**
+   * Write a value to a servo pin.
+   *
+   * @param pin the pin the servo is attached to
+   * @param the value: 0 being the lowest angle, and 180 the highest angle
+   */
+  public void servoWrite(int pin, int value) {
+    out.write(ANALOG_MESSAGE | (pin & 0x0F));
+    out.write(value & 0x7F);
+    out.write(value >> 7);
+  }
+  
   private void setDigitalInputs(int portNumber, int portData) {
     //System.out.println("digital port " + portNumber + " is " + portData);
     digitalInputData[portNumber] = portData;
