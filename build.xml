@@ -91,6 +91,7 @@
 	</target>
 	
 	<target name="clean" description="Remove build and dist directories">
+		<delete dir="${doc}"/>
 		<delete dir="${bin}"/>
 		<delete dir="${jars}"/>
 		<delete dir="${dist}"/>
