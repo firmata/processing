@@ -44,7 +44,7 @@
 		</jar>
 	</target>
 	
-    <target name="install" depends="jar" description="Put all the pieces together in the dist directory">
+	<target name="install" depends="jar" description="Put all the pieces together in the dist directory">
 		<mkdir dir="${dist}"/>
 		<mkdir dir="${dist}/library"/>
 		<mkdir dir="${dist}/examples"/>
@@ -63,23 +63,23 @@
 		<copy toDir="${dist}/src">
 			<fileset dir="${src}"/>
 		</copy>
-      <!-- Copy library.properties -->
-      <copy toDir="${dist}" file="library.properties" />
-    </target>
+		<!-- Copy library.properties -->
+		<copy toDir="${dist}" file="library.properties" />
+	</target>
 	
-    <target name="zip" depends="install" description="zip up the dist directory">
+	<target name="zip" depends="install" description="zip up the dist directory">
 		<zip destfile="processing-arduino.zip"><zipfileset dir="${dist}" prefix="arduino" /></zip>
-    </target>
+	</target>
 
 
-    <target name="run" depends="install" description="Run the tool">
+	<target name="run" depends="install" description="Run the tool">
 		<java classname="${ant.project.name}" classpath="${bin}" fork="true">
 		</java>
 	</target>
 	
-    <target name="clean" description="Remove build and dist directories">
-        <delete dir="${bin}"/>
-        <delete dir="${jars}"/>
-        <delete dir="${dist}"/>
-    </target>
+	<target name="clean" description="Remove build and dist directories">
+		<delete dir="${bin}"/>
+		<delete dir="${jars}"/>
+		<delete dir="${dist}"/>
+	</target>
 </project>
