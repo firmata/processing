@@ -26,10 +26,7 @@
 package org.firmata; // hope this is okay!
  
 /**
- * Together with the Firmata 2 firmware (an Arduino sketch uploaded to the
- * Arduino board), this class allows you to control the Arduino board from
- * Processing: reading from and writing to the digital pins and reading the
- * analog inputs.
+ * Internal class used by the Arduino class to parse the Firmata protocol.
  */
 public class Firmata {
   /**
@@ -124,7 +121,18 @@ public class Firmata {
   int majorVersion = 0;
   int minorVersion = 0;
   
+  /**
+   * An interface that the Firmata class uses to write output to the Arduino
+   * board. The implementation should forward the data over the actual 
+   * connection to the board.
+   */
   public interface Writer {
+    /**
+     * Write a byte to the Arduino board. The implementation should forward
+     * this using the actual connection.
+     *
+     * @param val the byte to write to the Arduino board
+     */
     public void write(int val);
   }
   
@@ -133,8 +141,7 @@ public class Firmata {
   /**
    * Create a proxy to an Arduino board running the Firmata 2 firmware.
    *
-   * @param in an InputStream associated with the Arduino serial port
-   * @param out an OutputStream associated with the Arduino serial port
+   * @param writer an instance of the Firmata.Writer interface
    */
   public Firmata(Writer writer) {
     this.out = writer;
@@ -214,7 +221,7 @@ public class Firmata {
    *
    * @param pin the pin to write to (must be 9, 10, or 11, as those are they
    * only ones which support hardware pwm)
-   * @param the value: 0 being the lowest (always off), and 255 the highest
+   * @param value the value: 0 being the lowest (always off), and 255 the highest
    * (always on)
    */
   public void analogWrite(int pin, int value) {
@@ -228,7 +235,7 @@ public class Firmata {
    * Write a value to a servo pin.
    *
    * @param pin the pin the servo is attached to
-   * @param the value: 0 being the lowest angle, and 180 the highest angle
+   * @param value the value: 0 being the lowest angle, and 180 the highest angle
    */
   public void servoWrite(int pin, int value) {
     out.write(ANALOG_MESSAGE | (pin & 0x0F));

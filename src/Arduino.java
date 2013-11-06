@@ -220,7 +220,7 @@ public class Arduino {
    *
    * @param pin the pin to write to (must be 9, 10, or 11, as those are they
    * only ones which support hardware pwm)
-   * @param the value: 0 being the lowest (always off), and 255 the highest
+   * @param value the value: 0 being the lowest (always off), and 255 the highest
    * (always on)
    */
   public void analogWrite(int pin, int value) {
@@ -236,7 +236,7 @@ public class Arduino {
    * Write a value to a servo pin.
    *
    * @param pin the pin the servo is attached to
-   * @param the value: 0 being the lowest angle, and 180 the highest angle
+   * @param value the value: 0 being the lowest angle, and 180 the highest angle
    */
   public void servoWrite(int pin, int value) {
     try {

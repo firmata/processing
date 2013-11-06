@@ -3,6 +3,7 @@
 	<property name="src" location="src"/> <!-- java source folder -->
 	<property name="bin" location="bin"/> <!-- intermediate build products -->
 	<property name="examples" location="examples"/> <!-- example files -->
+	<property name="doc" location="reference"/> <!-- javadocs -->
 	<property name="jars" location="jars"/> <!-- jar files -->
 	<property name="lib" location="lib"/> <!-- local libraries linked against -->
 	<property name="dist" location="arduino"/> <!-- build product location -->
@@ -21,6 +22,7 @@
 	<target name="init" description="Preparation">
 		<mkdir dir="${src}"/>
 		<mkdir dir="${lib}"/>
+		<mkdir dir="${doc}"/>
 	</target>
 
 	<target name="compile" depends="init" description="Compile code">
@@ -30,6 +32,12 @@
 			   includeAntRuntime="no"
 			   classpathref="lib.path" debug="${compile.debug}">
 		</javac>
+	</target>
+	
+	<target name="doc" depends="init" description="Generate javadocs">
+		<javadoc classpathref="lib.path" destdir="${doc}" excludepackagenames="org.firmata">
+			<fileset dir="${src}" includes="**/*.java" />
+		</javadoc>
 	</target>
 
 	<target name="jar" depends="compile" description="Build jar">
@@ -44,10 +52,11 @@
 		</jar>
 	</target>
 	
-	<target name="install" depends="jar" description="Put all the pieces together in the dist directory">
+	<target name="install" depends="jar,doc" description="Put all the pieces together in the dist directory">
 		<mkdir dir="${dist}"/>
 		<mkdir dir="${dist}/library"/>
 		<mkdir dir="${dist}/examples"/>
+		<mkdir dir="${dist}/reference"/>
 		<mkdir dir="${dist}/src"/>
 		<!-- Copy jars -->
 		<copy toDir="${dist}/library">
@@ -58,6 +67,10 @@
 		<!-- Copy examples -->
 		<copy toDir="${dist}/examples">
 			<fileset dir="${examples}"/>
+		</copy>
+		<!-- Copy reference -->
+		<copy toDir="${dist}/reference">
+			<fileset dir="${doc}"/>
 		</copy>
 		<!-- Copy source code -->
 		<copy toDir="${dist}/src">
