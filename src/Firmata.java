@@ -57,6 +57,10 @@ public class Firmata {
    * Constant to set a pin to I2C mode (in a call to pinMode()).
    */
   public static final int I2C = 6;
+  /**
+   * Constant to set a pin to tone mode (in a call to pinMode()).
+   */
+  public static final int TONE = 10;
 
   /**
    * Constant to write a high value (+5 volts) to a pin (in a call to
@@ -82,7 +86,8 @@ public class Firmata {
   private final int END_SYSEX              = 0xF7; // end a MIDI SysEx message
   
   // extended command set using sysex (0-127/0x00-0x7F)
-  /* 0x00-0x0F reserved for user-defined commands */  
+  /* 0x00-0x0F reserved for user-defined commands */
+  private final int TONE_DATA              = 0x5F; // send a tone or noTone command
   private final int SERVO_CONFIG           = 0x70; // set max angle, minPulse, maxPulse, freq
   private final int STRING_DATA            = 0x71; // a string message with 14-bits per char
   private final int SHIFT_DATA             = 0x75; // a bitstream to/from a shift register
@@ -241,6 +246,38 @@ public class Firmata {
     out.write(ANALOG_MESSAGE | (pin & 0x0F));
     out.write(value & 0x7F);
     out.write(value >> 7);
+  }
+  
+  /**
+   * Play tone on a pin.
+   *
+   * @param pin the pin on which to play the tone
+   * @param freq the frequency of the tone (in hertz)
+   * @param duration the duration of the tone (in milliseconds)
+   */
+  public void tone(int pin, int freq, int duration) {
+    out.write(START_SYSEX);
+    out.write(TONE_DATA);
+    out.write(0x00); // start tone
+    out.write(pin);
+    out.write(freq & 0x7F);
+    out.write(freq >> 7);
+    out.write(duration & 0x7f);
+    out.write(duration >> 7);
+    out.write(END_SYSEX);
+  }
+
+  /**
+   * Stop playing a tone on a pin.
+   *
+   * @param pin the pin on which the tone is playing
+   */
+  public void noTone(int pin) {
+    out.write(START_SYSEX);
+    out.write(TONE_DATA);
+    out.write(0x01); // stop tone
+    out.write(pin);
+    out.write(END_SYSEX);
   }
   
   private void setDigitalInputs(int portNumber, int portData) {

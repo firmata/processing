@@ -246,4 +246,34 @@ public class Arduino {
       throw new RuntimeException("Error inside Arduino.servoWrite()");
     }
   }
+  
+  /**
+   * Play a tone on a pin.
+   *
+   * @param pin the pin on which to play the tone
+   * @param freq the frequency of the tone (in hertz)
+   * @param duration the duration of the tone (in milliseconds)
+   */
+  public void tone(int pin, int freq, int duration) {
+    try {
+      firmata.tone(pin, freq, duration);
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new RuntimeException("Error inside Arduino.tone()");
+    }
+  }
+  
+  /**
+   * Stop playing a tone on a pin.
+   *
+   * @param pin the pin on which the tone is playing
+   */
+  public void noTone(int pin) {
+    try {
+      firmata.noTone(pin);
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new RuntimeException("Error inside Arduino.noTone()");
+    }
+  }
 }
