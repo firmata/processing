@@ -24,7 +24,7 @@
  */
 
 package org.firmata; // hope this is okay!
- 
+
 /**
  * Internal class used by the Arduino class to parse the Firmata protocol.
  */
@@ -68,9 +68,9 @@ public class Firmata {
    * digitalWrite()).
    */
   public static final int HIGH = 1;
-  
+
   private final int MAX_DATA_BYTES = 4096;
-  
+
   private final int DIGITAL_MESSAGE        = 0x90; // send data for a digital port
   private final int ANALOG_MESSAGE         = 0xE0; // send data for an analog pin (or PWM)
   private final int REPORT_ANALOG          = 0xC0; // enable analog input by pin #
@@ -80,9 +80,9 @@ public class Firmata {
   private final int SYSTEM_RESET           = 0xFF; // reset from MIDI
   private final int START_SYSEX            = 0xF0; // start a MIDI SysEx message
   private final int END_SYSEX              = 0xF7; // end a MIDI SysEx message
-  
+
   // extended command set using sysex (0-127/0x00-0x7F)
-  /* 0x00-0x0F reserved for user-defined commands */  
+  /* 0x00-0x0F reserved for user-defined commands */
   private final int SERVO_CONFIG           = 0x70; // set max angle, minPulse, maxPulse, freq
   private final int STRING_DATA            = 0x71; // a string message with 14-bits per char
   private final int SHIFT_DATA             = 0x75; // a bitstream to/from a shift register
@@ -111,19 +111,19 @@ public class Firmata {
   int[] digitalOutputData = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   int[] digitalInputData  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   int[] analogInputData   = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-  
+
   private final int MAX_PINS = 128;
-  
+
   int[] pinModes = new int[MAX_PINS];
   int[] analogChannel = new int[MAX_PINS];
   int[] pinMode = new int[MAX_PINS];
 
   int majorVersion = 0;
   int minorVersion = 0;
-  
+
   /**
    * An interface that the Firmata class uses to write output to the Arduino
-   * board. The implementation should forward the data over the actual 
+   * board. The implementation should forward the data over the actual
    * connection to the board.
    */
   public interface Writer {
@@ -135,9 +135,9 @@ public class Firmata {
      */
     public void write(int val);
   }
-  
+
   Writer out;
-  
+
   /**
    * Create a proxy to an Arduino board running the Firmata 2 firmware.
    *
@@ -146,23 +146,23 @@ public class Firmata {
   public Firmata(Writer writer) {
     this.out = writer;
   }
-  
+
   public void init() {
     // enable all ports; firmware should ignore non-existent ones
     for (int i = 0; i < 16; i++) {
       out.write(REPORT_DIGITAL | i);
       out.write(1);
     }
-    
+
     //queryCapabilities();
     queryAnalogMapping();
-		
+
 //    for (int i = 0; i < 16; i++) {
 //      out.write(REPORT_ANALOG | i);
 //      out.write(1);
 //    }
   }
-  
+
   /**
    * Returns the last known value read from the digital pin: HIGH or LOW.
    *
@@ -205,7 +205,7 @@ public class Firmata {
    */
   public void digitalWrite(int pin, int value) {
     int portNumber = (pin >> 3) & 0x0F;
-  
+
     if (value == 0)
       digitalOutputData[portNumber] &= ~(1 << (pin & 0x07));
     else
@@ -215,7 +215,7 @@ public class Firmata {
     out.write(digitalOutputData[portNumber] & 0x7F);
     out.write(digitalOutputData[portNumber] >> 7);
   }
-  
+
   /**
    * Write an analog value (PWM-wave) to a digital pin.
    *
@@ -242,7 +242,7 @@ public class Firmata {
     out.write(value & 0x7F);
     out.write(value >> 7);
   }
-  
+
   private void setDigitalInputs(int portNumber, int portData) {
     //System.out.println("digital port " + portNumber + " is " + portData);
     digitalInputData[portNumber] = portData;
@@ -258,13 +258,13 @@ public class Firmata {
     this.majorVersion = majorVersion;
     this.minorVersion = minorVersion;
   }
-  
+
   private void queryCapabilities() {
     out.write(START_SYSEX);
     out.write(CAPABILITY_QUERY);
     out.write(END_SYSEX);
   }
-  
+
   private void queryAnalogMapping() {
     out.write(START_SYSEX);
     out.write(ANALOG_MAPPING_QUERY);
@@ -317,9 +317,9 @@ public class Firmata {
 
   public void processInput(int inputData) {
     int command;
-    
+
 //    System.out.print(">" + inputData + " ");
-    
+
     if (parsingSysex) {
       if (inputData == END_SYSEX) {
         parsingSysex = false;
@@ -331,7 +331,7 @@ public class Firmata {
     } else if (waitForData > 0 && inputData < 128) {
       waitForData--;
       storedInputData[waitForData] = inputData;
-      
+
       if (executeMultiByteCommand != 0 && waitForData == 0) {
         //we got everything
         switch(executeMultiByteCommand) {
@@ -360,7 +360,7 @@ public class Firmata {
       case REPORT_VERSION:
         waitForData = 2;
         executeMultiByteCommand = command;
-        break;      
+        break;
       case START_SYSEX:
         parsingSysex = true;
         sysexBytesRead = 0;

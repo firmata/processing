@@ -1,6 +1,6 @@
 /**
  * Arduino.java - Arduino/firmata library for Processing
- * Copyright (C) 2006-08 David A. Mellis 
+ * Copyright (C) 2006-08 David A. Mellis
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@
  *
  * $Id$
  */
- 
+
 package cc.arduino;
 
 import processing.core.PApplet;
@@ -76,12 +76,12 @@ public class Arduino {
    * digitalWrite()).
    */
   public static final int HIGH = 1;
-  
+
   PApplet parent;
   Serial serial;
   SerialProxy serialProxy;
   Firmata firmata;
-  
+
   // We need a class descended from PApplet so that we can override the
   // serialEvent() method to capture serial data.  We can't use the Arduino
   // class itself, because PApplet defines a list() method that couldn't be
@@ -103,18 +103,18 @@ public class Arduino {
       }
     }
   }
-  
+
   public class FirmataWriter implements Firmata.Writer {
     public void write(int val) {
       serial.write(val);
 //      System.out.print("<" + val + " ");
     }
   }
-  
+
   public void dispose() {
     this.serial.dispose();
   }
-  
+
   /**
    * Get a list of the available Arduino boards; currently all serial devices
    * (i.e. the same as Serial.list()).  In theory, this should figure out
@@ -136,7 +136,7 @@ public class Arduino {
   public Arduino(PApplet parent, String iname) {
     this(parent, iname, 57600);
   }
-  
+
   /**
    * Create a proxy to an Arduino board running the Firmata 2 firmware.
    *
@@ -153,16 +153,16 @@ public class Arduino {
     this.firmata = new Firmata(new FirmataWriter());
     this.serialProxy = new SerialProxy();
     this.serial = new Serial(serialProxy, iname, irate);
-    
+
     parent.registerMethod("dispose", this);
 
     try {
       Thread.sleep(3000); // let bootloader timeout
     } catch (InterruptedException e) {}
-    
+
     firmata.init();
   }
-  
+
   /**
    * Returns the last known value read from the digital pin: HIGH or LOW.
    *
@@ -231,7 +231,7 @@ public class Arduino {
       throw new RuntimeException("Error inside Arduino.analogWrite()");
     }
   }
-  
+
   /**
    * Write a value to a servo pin.
    *
