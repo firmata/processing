@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Arduino" default="zip" basedir=".">
+<project name="arduino" default="zip" basedir=".">
 	<property name="src" location="src"/> <!-- java source folder -->
 	<property name="bin" location="bin"/> <!-- intermediate build products -->
 	<property name="examples" location="examples"/> <!-- example files -->
@@ -12,7 +12,7 @@
 	<property name="compile.debug" value="true"/>
 
 	<fileset id="lib.jars" dir="/Applications/Processing.app/Contents/Java/"
-	         includes="core/library/core.jar modes/java/libraries/serial/library/serial.jar" />
+	         includes="core/library/core.jar modes/java/libraries/serial/library/serial.jar modes/java/libraries/serial/library/jssc.jar" />
 
 	<path id="lib.path">
 		<fileset refid="lib.jars"/>
@@ -33,7 +33,7 @@
 			   classpathref="lib.path" debug="${compile.debug}">
 		</javac>
 	</target>
-	
+
 	<target name="doc" depends="init" description="Generate javadocs">
 		<javadoc classpathref="lib.path" destdir="${doc}" excludepackagenames="org.firmata">
 			<fileset dir="${src}" includes="**/*.java" />
@@ -51,7 +51,7 @@
 			<!--zipgroupfileset refid="lib.jars"/-->
 		</jar>
 	</target>
-	
+
 	<target name="install" depends="jar,doc" description="Put all the pieces together in the dist directory">
 		<mkdir dir="${dist}"/>
 		<mkdir dir="${dist}/library"/>
@@ -62,7 +62,7 @@
 		<copy toDir="${dist}/library">
 			<fileset dir="${jars}">
 				<include name="*.jar"/>
-			</fileset>			
+			</fileset>
 		</copy>
 		<!-- Copy examples -->
 		<copy toDir="${dist}/examples">
@@ -79,7 +79,7 @@
 		<!-- Copy library.properties -->
 		<copy toDir="${dist}" file="library.properties" />
 	</target>
-	
+
 	<target name="zip" depends="install" description="zip up the dist directory">
 		<zip destfile="processing-arduino.zip"><zipfileset dir="${dist}" prefix="arduino" /></zip>
 	</target>
@@ -89,7 +89,7 @@
 		<java classname="${ant.project.name}" classpath="${bin}" fork="true">
 		</java>
 	</target>
-	
+
 	<target name="clean" description="Remove build and dist directories">
 		<delete dir="${doc}"/>
 		<delete dir="${bin}"/>
