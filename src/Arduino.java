@@ -65,6 +65,10 @@ public class Arduino {
    * Constant to set a pin to I2C mode (in a call to pinMode()).
    */
   public static final int I2C = 6;
+  /**
+   * Constant to set a pin to input mode and enable the pull-up resistor (in a call to pinMode()).
+   */
+  public static final int INPUT_PULLUP = 11;
 
   /**
    * Constant to write a high value (+5 volts) to a pin (in a call to
