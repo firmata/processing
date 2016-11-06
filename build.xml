@@ -95,5 +95,6 @@
 		<delete dir="${bin}"/>
 		<delete dir="${jars}"/>
 		<delete dir="${dist}"/>
+		<delete dir="${lib}"/>
 	</target>
 </project>
