@@ -5,7 +5,7 @@ See http://playground.arduino.cc/Interfacing/Processing for more info.
 ## Contributing
 
 *Note: The build process (as defined in build.xml) copies 2 jar files from the Processing
-application and assumes Processing is installed on OX X in the Applications directory so
+application and assumes Processing is installed on OS X in the Applications directory so
 the following build instructions will currently only work for OS X.*
 
 To build:
